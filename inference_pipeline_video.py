@@ -5,7 +5,7 @@ import torch
 from PIL import Image
 import numpy as np
 from scipy.spatial import geometric_slerp
-
+import os
 # 1. Load the autoencoder model which will be used to decode the latents into image space. 
 vae = AutoencoderKL.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="vae", use_auth_token="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")
 
@@ -29,13 +29,18 @@ unet.to(torch_device)
 #prompt = ["a detailed photo of a vaporwave, colorful, trippy, multidimensional being that is a ghost high-quality, ArtStation", "neon multidimensional trippy ghost"]
 
 # prompt_1 = ["cosmic horror, abstract, ghostly, arcade, duotone, poltergeist, elegant, highly detailed, artstation, smooth, sharp focus, unreal engine 5, raytracing, art by beeple and mike winkelmann, ultraviolet colors"]
-prompt = ["a detailed photo of a relaxing hyperdimensional, neon robots walking away from a blackhole, vaporwave, artstation", "a detailed photo of a relaxing hyperdimensional, neon robots hanging out in space, vaporwave, artstation"]
+prompt = ["a detailed photo of the end of the universe, artstation, vaporwave, neon", "a detailed photo of the end of the universe with a blackhole, artstation, vaporwave, neon"]
 
 #prompt_2 = ["galaxy, multidimensional, abstract, ghostly, poltergeist, elegant, highly detailed, artstation, smooth, sharp focus, unreal engine 5, raytracing, art by beeple and mike winkelmann, ultraviolet colors"]
 # prompt_3 = ["a highly detailed black hole with starts swirling poltergeist artstation unreal engine 5 raytracing art by beeple and mike winkelmann, ultraviolet colors"]
 # prompt_4 = ["a highly detailed black hole with starts swirling poltergeist artstation raytracing ultraviolet colors"]
-save_dir = "results_3/ghost_slerp_6_longer"
+save_dir = "results_3/16_ghost_lerp_longer"
 name_prefix = "ghost_slerp"
+
+# Make save directory
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+
 
 height = 512                        # default height of Stable Diffusion
 width = 768                         # default width of Stable Diffusion
@@ -44,7 +49,7 @@ num_inference_steps = 60           # Number of denoising steps
 
 #guidance_scale = 7.5               # Scale for classifier-free guidance
 guidance_scale = 8.0
-slerp = True
+slerp = False
 #generator = None
 batch_size = 1#len(prompt)
 
@@ -55,8 +60,8 @@ if slerp:
     interp_factors_arr = geometric_slerp(start, end, t_vals)
     interp_factors = [i[0] for i in interp_factors_arr]
 else:
-    interp_step_size = 0.05
-    interp_factors = [interp_step_size * (i + 1) for i in range(int(1 / interp_step_size)) ]
+    interp_factors = np.linspace(0, 1, num_interp_steps)[::-1]
+    print(interp_factors)
 
 
 for img_idx, interp_factor in enumerate(interp_factors):

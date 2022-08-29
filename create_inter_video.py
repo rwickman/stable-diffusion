@@ -21,6 +21,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--inter", action="store_true", help="Interpolate between frames")
 
+    parser.add_argument(
+        "--inter_steps", type=int, default=4, help="Interpolate between frames")
+
     parser.add_argument("--out", default="ghost_inter.mp4")
 
 
@@ -40,13 +43,15 @@ if __name__ == "__main__":
     def make_frame(t):
         global frame_idx
         if args.inter:
-            actual_frame_idx = int(frame_idx // 2)
+            actual_frame_idx = int(frame_idx // args.inter_steps)
             img = np.array(Image.open(img_files[actual_frame_idx]))
-            if frame_idx % 2 == 1 and actual_frame_idx + 1 < len(img_files):
+            inter_frame_step = frame_idx % args.inter_steps
+            if inter_frame_step != 0 and actual_frame_idx + 1 < len(img_files):
                 tgt_img = np.array(Image.open(img_files[actual_frame_idx + 1]))
                 
                 # Interpolate between current and next frame
-                img = 0.5 * img + 0.5 * tgt_img
+                inter_factor = inter_frame_step / args.inter_steps
+                img = (1 - inter_factor) * img + inter_factor * tgt_img
         else:
             img = np.array(Image.open(img_files[frame_idx]))
 
@@ -55,7 +60,7 @@ if __name__ == "__main__":
         return img
 
     if args.inter:
-       duration = (2 * len(img_files) - 1) / args.mp4_fps
+       duration = (args.inter_steps * len(img_files) - 1) / args.mp4_fps
     else:
         duration = (len(img_files) - 1) / args.mp4_fps
     
