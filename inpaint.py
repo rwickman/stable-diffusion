@@ -42,7 +42,7 @@ with autocast("cuda"):
         init_image=init_img,
         mask_image=mask_img,
         guidance_scale=8.5,
-        num_inference_steps=50,
+        num_inference_steps=30,
         strength=0.7,
         generator=generator).images[0]
 out_img.save("inpaint_results_strength0_7.png")
